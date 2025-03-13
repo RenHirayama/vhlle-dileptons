@@ -1,0 +1,4 @@
+*.o
+coarse
+src/diltables
+src/eostables

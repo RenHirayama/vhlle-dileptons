@@ -24,7 +24,7 @@ export cellsize=0.7d0  # 0.7
 # *4* = HG EoS (as for *2*), but QGP emission above T_c (RECOMMENDED FOR LOW ENERGIES - SIS / FAIR)
 # *5* = CHIRAL EoS + ONLY QGP above T_c (NOT RECOMMENDED!)
 # *6* = HG EoS + QGP from LATTICE EoS above T_c (RECOMMENDED FOR HIGH ENERGIES - SPS / RHIC / LHC )
-export eos=2
+export eos=6
 
 # CHOOSE EMISSION TYPE AND RATES:
 # *-1* = PHOTON EMISSION
@@ -87,20 +87,22 @@ export ftn69=test.f69
 # *.F70 = OUTPUT OF CELL PROPERTIES ALONG Z-AXIS FOR EACH TIMESTEP
 export ftn70=test.f70
 
+export rhonuc=RHONUCSTR
 # *.F71 = MAIN THERMAL DILEPTON OUTPUT FILE
-export ftn71=test.f71
+export ftn71=test_${rhonuc}.f71
 
 # *.F72 = NON-THERMAL DILEPTON OUTPUT FOR RHO AND OMEGA FROM COLD CELLS
-export ftn72=test.f72
+export ftn72=test_${rhonuc}.f72
 
 # DEFINE SEED FOR RANDON NUMBER GENERATOR
 export random=$(printf '%d' 0x$(xxd -l 3 -ps -c 10 /dev/urandom))
 #export random=123456789
 
 
+
 ### DEFINE INPUTFILE (URQMD-F14 OR SMASH-OSCAR) AND STANDARD OUTPUTFILE HERE.
 ### NOTE THAT THE STANDARD OUTPUT CONTAINS ONLY THE PROPERTIES FOR EACH
 ### SPACE-TIME CELL; THE DILEPTON RESULTS ARE WRITTEN IN THE F71-FILE.
-cat SMASH_AuAu_10.oscar | ./vhlle_dil > outputfile.out
+cat SMASH_AuAu_10.oscar | ./teste_dil > outputfile.out
 
 exit

@@ -208,9 +208,9 @@ C       =============================================================
 C       Purpose: This program computes modified Bessel functions 
 C                In(x) and Kn(x), and their derivatives using
 C                subroutine IKNA
-C       Input:   x --- Argument of In(x) and Kn(x) ( x ò 0 )
+C       Input:   x --- Argument of In(x) and Kn(x) ( x ï¿½ 0 )
 C                n --- Order of In(x) and Kn(x)
-C                      ( n = 0,1,úúú, n ó 250 )
+C                      ( n = 0,1,ï¿½ï¿½ï¿½, n ï¿½ 250 )
 C       Output:  BI(n) --- In(x)
 C                DI(n) --- In'(x)
 C                BK(n) --- Kn(x)
@@ -260,7 +260,7 @@ C
 C       ========================================================
 C       Purpose: Compute modified Bessel functions In(x) and
 C                Kn(x), and their derivatives
-C       Input:   x --- Argument of In(x) and Kn(x) ( x ò 0 )
+C       Input:   x --- Argument of In(x) and Kn(x) ( x ï¿½ 0 )
 C                n --- Order of In(x) and Kn(x)
 C       Output:  BI(n) --- In(x)
 C                DI(n) --- In'(x)
@@ -342,7 +342,7 @@ C
 C       =========================================================
 C       Purpose: Compute modified Bessel functions I0(x), I1(1),
 C                K0(x) and K1(x), and their derivatives
-C       Input :  x   --- Argument ( x ò 0 )
+C       Input :  x   --- Argument ( x ï¿½ 0 )
 C       Output:  BI0 --- I0(x)
 C                DI0 --- I0'(x)
 C                BI1 --- I1(x)

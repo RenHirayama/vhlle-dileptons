@@ -412,8 +412,8 @@ c..   loop over momenta
       qup=qtabmax
       qdown=qtabmin
  
-c      write(0,*)'mumax,mumin,tmax,tmin,qmax,qmin,qup,qdown',mutabmax,
-c     &           mutabmin,ttabmax,ttabmin,qtabmax,qtabmin,qup,qdown ! Debug only
+      write(0,*)'mumax,mumin,tmax,tmin,qmax,qmin,qup,qdown',mutabmax,
+     &           mutabmin,ttabmax,ttabmin,qtabmax,qtabmin,qup,qdown ! Debug only
 
 c-----|----------------------------------------------------------------|X
 
@@ -688,7 +688,8 @@ c..   loop over mass and momenta
       qtabmin=qtab(1)
       qup=qtabmax
       qdown=qtabmin
- 
+      
+      write(0,*)itmax
       write(0,*)'mumax,mumin,tmax,tmin'
       write(0,21)mutabmax,mutabmin,ttabmax,ttabmin ! Debug only
       write(0,*)'pimax,pimin,kmax,kmin,qup,qdown'
@@ -829,15 +830,8 @@ c.. VACUUM case
 c.. IN-MEDIUM case     
       else
       write(0,*)'Read Rapp spectral function dimuon tables...'
-      if(rates.eq.2) then
-c       open(1,file='diltables/rawa/Rates-tot.dat', 
-c     &      status='old')
-       open(1,file='diltables/rawaold/Rates-or-mu.dat', 
-     &      status='old')
-      else if(rates.eq.4) then
        open(1,file='diltables/rawa/Rates-or-mu.dat', 
      &      status='old')
-      endif
       endif
       else ! di-electron
  
@@ -848,13 +842,8 @@ c.. VACUUM case
 c.. IN-MEDIUM case     
       else
       write(0,*)'Read Rapp spectral function dielectron tables...'
-      if(rates.eq.2) then
-       open(1,file='diltables/rawaold/Rates-or.dat', 
-     &      status='old')
-      else if(rates.eq.4) then
        open(1,file='diltables/rawa/Rates-or-f.dat', 
      &      status='old')
-      endif
       endif
       endif
 c.. Here only rates are stored. Values of mu and T will be read later
@@ -898,24 +887,14 @@ c. 2)  READ CORRESPONDING MAXIMA (up to known factors)
 
 c ***DI-MUONS***
        write(0,*)'Read corresponding dimuon maxima...'
-       if(rates.eq.2) then
-       open(1,file='diltables/rawaold/max_Rates-or-mu.dat', 
-     &       status='old') 
-       else if(rates.eq.4) then
        open(1,file='diltables/rawa/max_Rates-or-mu.dat', 
      &       status='old') 
-       endif
       else ! di-electrons
 
 c ***DI-ELECTRONS***
        write(0,*)'Read corresponding dielectron maxima...'
-       if(rates.eq.2) then
-       open(1,file='diltables/rawaold/max_Rates-or.dat', 
-     &        status='old')
-       else if(rates.eq.4) then
        open(1,file='diltables/rawa/max_Rates-or-f.dat', 
      &        status='old')
-       endif
        endif
 c.. Loop over baryon chemical potential
       do i=1,itmaxor!32
@@ -938,13 +917,8 @@ c-----|----------------------------------------------------------------|X
 c. 3) READ TABULATED IN-MEDIUM PROPAGATORS 
       write(0,*)'Read self energies...'
 
-      if(rates.eq.2) then
-      open(1,file='diltables/rawaold/ImDrho-or.dat',
-     &     status='old')
-      else if(rates.eq.4) then
       open(1,file='diltables/rawa/ImDrho-or-f.dat',
      &     status='old')
-      endif
 
 c..   loop over temperature
       do i=1,itmaxor
@@ -1005,13 +979,8 @@ c-----|----------------------------------------------------------------|X
 c. 4) READ TABULATED MAXIMA OF THE FUNCTION ImDrho(M,q;T,mu)
       write(0,*)'Read maxima of ImDrho(M,q;T,mu)...'
 
-      if(rates.eq.2) then
-      open(1,file='diltables/rawaold/max_ImDrho-or.dat', 
-     &	status='old')
-      else if(rates.eq.4) then
       open(1,file='diltables/rawa/max_ImDrho-or-f.dat', 
      &	status='old')
-      endif
 
 c..   here store only values of the maxima. 
 c     Values of mu, T and M have been aready stored.

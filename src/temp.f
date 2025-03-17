@@ -667,7 +667,7 @@ c-----|----------------------------------------------------------------|X
       if (eos.eq.3.OR.eos.eq.5) neff=lam*n
 
 c... Ideal gas in Boltzmann limit [J. Sollfrank, P. Koch, U. Heinz, 
-c... Z.Phys. C52 (1991) 593-609, Equation (33); See also B. Kämpfer,
+c... Z.Phys. C52 (1991) 593-609, Equation (33); See also B. Kï¿½mpfer,
 c... P.Koch, O. P. Pavlenko, Phys.Rev. C49 (1994) 1132-1138, 
 c... Equation (4)]
 

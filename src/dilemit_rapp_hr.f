@@ -356,12 +356,13 @@ c. **** Write into output file f71 ****
       acce=1.0d0
       accp=1.0d0
       effvol4=vol4*(1.0d0-lambda)*dble(multi)*volfac
+c      write(0,*)contr,fugacity,vol4,volfac,effvol4
 c........................................................................
 c. NOTE: The extended output format writes out ***lab-system momenta*** !
 c.       for e+ and e-                                                  !
 c.......................................................................!
       if(vHLLE_out) then
-       write(71,557)ityp,contr,mass,p0l,pxl,pyl,pzl,temp,rhn
+       write(71,557)ityp,contr/multi,mass,p0l,pxl,pyl,pzl,effvol4/multi,temp,rhn
       elseif(ext_out) then !extended output format
        write(71,556)ityp,contr,mass,p0_el_lab,px_el_lab,py_el_lab,
      & pz_el_lab,p0_po_lab,px_po_lab,py_po_lab,pz_po_lab,dt,time,effvol4,
@@ -373,7 +374,7 @@ c.......................................................................!
  555  format(e14.7,4f12.7,i9,2f12.7)
  556  format(I5,1X,13(E16.8E3,1X),I4,1X,2(E16.8E3,1X),I9,1X,
      &F12.8,1X,2(E16.8,1x))
- 557  format(I3,e14.7,5f12.7,2f6.3)
+ 557  format(I3,e14.7,5f12.7,3f6.3)
 
  678  continue
 

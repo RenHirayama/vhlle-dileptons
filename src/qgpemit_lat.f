@@ -170,7 +170,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccc!
       else if(na60mode.eq.0.AND.beta_lab.lt.0.94d0) then !
          stat=15                                         !
       else                                               !
-         stat=2                                          !
+         stat=10                                         !
       end if                                             !         
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccc! 
 
@@ -197,6 +197,7 @@ c.. p0l is set to zero in qgpmomdist_lat
        write(0,*)"p0L is zero"
        return
       endif
+c      write(0,*)'p0l,pxl,pyl,pzl',p0l,pxl,pyl,pzl ! Debug only 
 
 c.. Determine momenta of e+ and e-
 
@@ -237,7 +238,7 @@ c. NOTE: The extended output format writes out ***lab-system momenta*** !
 c.       for e+ and e-                                                  !
 c.......................................................................!
       if(vHLLE_out) then
-       write(71,557)ityp,contr,mass,p0l,pxl,pyl,pzl,t,muquark
+       write(71,557)ityp,contr/multi,mass,p0l,pxl,pyl,pzl,effvol4/multi,t,3*muquark
       elseif(ext_out) then !extended output format
 c       write(71,556)ityp,contr,mass
        write(71,*)ityp,contr,mass,p0_el_lab,px_el_lab,py_el_lab,
@@ -250,7 +251,7 @@ c       write(71,556)ityp,contr,mass
  555  format(e14.7,4f12.7,I2,2E14.7)
  556  format(I5,1X,13(E16.8E3,1X),I4,1X,2(E16.8E3,1X),I9,1X,
      &F12.8,1X,2(E16.8,1x))
- 557  format(I3,e14.7,5f12.7,2f6.3)
+ 557  format(I3,e14.7,5f12.7,3f6.3)
 
  678  continue
 

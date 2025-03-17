@@ -228,12 +228,9 @@ c DILEPTON
            if(rates.eq.1) then ! RAPP SPECTRAL FUNCTION
             call dilemit_rapp(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
      &                        vol4,multi,betaLAB,dt,h,lambda)
-           elseif(rates.ge.2) then ! RAPP SPECTRAL FUNCTION - RHO & OMEGA / PHI ONLY
+           elseif(rates.ge.2) then ! RAPP SPECTRAL FUNCTION - RHO & OMEGA / PHI ONLY or all 3
              call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
      &                        vol4,multi,betaLAB,dt,h,lambda)
-           elseif(rates.eq.0) then ! ELETSKY SPECTRAL FUNCTION
-            call dilemit(vac,t,mub,mupion,gce,vxce,vyce,vzce,vol4,multi,betaLAB,
-     &                   dt,h,lambda)
            endif
 c PHOTON
           elseif(lambda.lt.0.99999d0.AND.rates.eq.-1) then

@@ -78,27 +78,15 @@ export na60mode=2
 ##### SPECIFIC OUTPUT FILES: #####
 ##################################
 
-# *.F68 = OUTPUT OF PROPERTIES OF CENTRAL CELL FOR EACH TIMESTEP
-export ftn68=test.f68
-
-# *.F69 = OUTPUT OF CELL PROPERTIES ALONG X-AXIS FOR EACH TIMESTEP
-export ftn69=test.f69
-
-# *.F70 = OUTPUT OF CELL PROPERTIES ALONG Z-AXIS FOR EACH TIMESTEP
-export ftn70=test.f70
-
-export rhonuc=RHONUCSTR
+export rhonuc=0
 # *.F71 = MAIN THERMAL DILEPTON OUTPUT FILE
-export ftn71=test_${rhonuc}.f71
-
-# *.F72 = NON-THERMAL DILEPTON OUTPUT FOR RHO AND OMEGA FROM COLD CELLS
-export ftn72=test_${rhonuc}.f72
+export ftn71=dileptons_ENERGY.f71
 
 # DEFINE SEED FOR RANDON NUMBER GENERATOR
 export random=$(printf '%d' 0x$(xxd -l 3 -ps -c 10 /dev/urandom))
 #export random=123456789
 
-
+export inputFile='../../dileptons_teste/DynFlu0.5/ENERGY/Hydro/1/for_dilrates.dat'
 
 ### DEFINE INPUTFILE (URQMD-F14 OR SMASH-OSCAR) AND STANDARD OUTPUTFILE HERE.
 ### NOTE THAT THE STANDARD OUTPUT CONTAINS ONLY THE PROPERTIES FOR EACH

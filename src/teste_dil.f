@@ -53,7 +53,8 @@ c. general varibles & grid parameter
       character*32 dx_,grd_,vacuum_,eos_,leptype_,rates_,na60mode_,rhonuc_
       character*32 output_,pikchem_,fourpimix_,baryons_,latqgp_,random_
       character*32 phqgp_,hgpar_,model_
-      character*96 file68,file69,file70,file71,file72
+      character*96 file71
+      character*96 inputFile, inputDir
       real*8 dx,vol
       integer grd,grd_z,vac
       integer leptype
@@ -116,23 +117,13 @@ c.. Dielectron / Dimuon emission
       dimuon=.FALSE.
       if(leptype.eq.1) dimuon=.TRUE.
 
+c..Set Input File
+      call getenv('inputFile',inputFile)
 c..Set Output Units
-      call getenv('ftn69',file69)
-      call getenv('ftn70',file70)
       call getenv('ftn71',file71)
-      call getenv('ftn72',file72)
 
-      if (file69(1:4).ne.'    ') then
-         OPEN(UNIT=69,FILE=file69,STATUS='replace',FORM='FORMATTED')
-      endif
-      if (file70(1:4).ne.'    ') then
-         OPEN(UNIT=70,FILE=file70,STATUS='replace',FORM='FORMATTED')
-      endif
       if (file71(1:4).ne.'    ') then
          OPEN(UNIT=71,FILE=file71,STATUS='replace',FORM='FORMATTED')
-      endif
-      if (file72(1:4).ne.'    ') then
-         OPEN(UNIT=72,FILE=file72,STATUS='replace',FORM='FORMATTED')
       endif
 
       write(0,*)'RANDOM SEED',seedinit
@@ -157,7 +148,7 @@ c.  Set values for TABLE RESOLUTION
       mmmaxor=mmmaxrhom
       rates=4
       call readdil_rapp_rho()
-      open(unit=1,file="diltest.dat",status='old')
+      open(unit=1,file=trim(inputFile),status='old')
       do
         read(1,*,end=101)h,t,mub,mupion,dummy,lambda,rhonuc,vxce,vyce,vzce
         gce=1/sqrt(vxce**2+vyce**2+vzce**2)
@@ -166,16 +157,20 @@ c        write(0,413)h,t,mub,mupion,mukaon,vxce,vyce,vzce,lambda
 c        call sleep(1)
         do h=1,5
          if(mod(h,100).eq.0) write(0,*)h
-         call qgpemit_lat(lambda,t,muq,gce,vxce,vyce,vzce,multi,vol4,
-     &                  betaLAB,dt,h)
+         if (lambda.gt.0.00001) then
+           call qgpemit_lat(lambda,t,muq,gce,vxce,vyce,vzce,multi,vol4,
+     &                      betaLAB,dt,h)
+         endif
+         if (lambda.lt.0.99999) then
          call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
      &                     vol4,multi,betaLAB,dt,h,lambda)
          call fopiemit_mix(t,mub,rhonuc,mupion,mukaon,gce,vxce,vyce,
      &                   vzce,vol4,multi,betaLAB,dt,h,lambda)
+         endif
         end do
       end do
 101   write(0,*)"Did rho, omega, multi-pi, QGP"
-
+        
       itmaxor=itmaxphi
       jrhomaxor=jrhomaxphi
       kpimaxor=kpimaxphi
@@ -184,17 +179,19 @@ c        call sleep(1)
       mmmaxor=mmmaxphi
       rates=3
       call readdil_rapp_phi()
-      open(unit=1,file="diltest.dat",status='old')
+      open(unit=1,file=trim(inputFile),status='old')
       do
         read(1,*,end=102)h,t,mub,mupion,dummy,lambda,rhonuc,vxce,vyce,vzce
-        gce=1/sqrt(vxce**2+vyce**2+vzce**2)
+        if(lambda.lt.0.99999) then
+          gce=1/sqrt(vxce**2+vyce**2+vzce**2)
 
-        do h=1,5
-         if(mod(h,100).eq.0) write(0,*)h
-         call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
-     &                     vol4,multi,betaLAB,dt,h,lambda)
-        end do
-      enddo
+          do h=1,5
+            if(mod(h,100).eq.0) write(0,*)h
+            call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
+     &                           vol4,multi,betaLAB,dt,h,lambda)
+          end do
+        endif
+      end do
 102   write(0,*)"Did phi"
 
 413   format(I3,7f7.4,1f2.1)

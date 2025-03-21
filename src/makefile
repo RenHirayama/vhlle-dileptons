@@ -19,12 +19,14 @@
 #			$(F77) $(F77FLAGS) -c coarse.f
 #input.o			:input.f 
 #			$(F77) $(F77FLAGS) -c input.f
+vhlle_read			:vhlle_read.o readeos.o grid.o transform.o temp.o freezeout.o 4piemit.o 4piemit_mix.o dilemit.o dilemit_rapp.o dilemit_rapp_hr.o qgpemit.o qgpemit_lat.o photon.o dirrho.o omega.o dirphi.o shdelta.o pel_ppo_dist.o output.o ranf.o pdg2ityp.o
+			$(F77) $(F77FLAGS) -o vhlle_read vhlle_read.o readeos.o grid.o transform.o temp.o freezeout.o 4piemit.o 4piemit_mix.o dilemit.o dilemit_rapp.o dilemit_rapp_hr.o qgpemit.o qgpemit_lat.o photon.o dirrho.o omega.o dirphi.o shdelta.o pel_ppo_dist.o output.o ranf.o pdg2ityp.o
 
-teste_dil			:teste_dil.o vhlle_read.o readeos.o grid.o transform.o temp.o freezeout.o 4piemit.o 4piemit_mix.o dilemit.o dilemit_rapp.o dilemit_rapp_hr.o qgpemit.o qgpemit_lat.o photon.o dirrho.o omega.o dirphi.o shdelta.o pel_ppo_dist.o output.o ranf.o pdg2ityp.o
-			$(F77) $(F77FLAGS) -o teste_dil teste_dil.o vhlle_read.o readeos.o grid.o transform.o temp.o freezeout.o 4piemit.o 4piemit_mix.o dilemit.o dilemit_rapp.o dilemit_rapp_hr.o qgpemit.o qgpemit_lat.o photon.o dirrho.o omega.o dirphi.o shdelta.o pel_ppo_dist.o output.o ranf.o pdg2ityp.o
+#teste_dil			:teste_dil.o readeos.o grid.o transform.o temp.o freezeout.o 4piemit.o 4piemit_mix.o dilemit.o dilemit_rapp.o dilemit_rapp_hr.o qgpemit.o qgpemit_lat.o photon.o dirrho.o omega.o dirphi.o shdelta.o pel_ppo_dist.o output.o ranf.o pdg2ityp.o
+#			$(F77) $(F77FLAGS) -o teste_dil teste_dil.o readeos.o grid.o transform.o temp.o freezeout.o 4piemit.o 4piemit_mix.o dilemit.o dilemit_rapp.o dilemit_rapp_hr.o qgpemit.o qgpemit_lat.o photon.o dirrho.o omega.o dirphi.o shdelta.o pel_ppo_dist.o output.o ranf.o pdg2ityp.o
 
-teste_dil.o		:teste_dil.f
-			$(F77) $(F77FLAGS) -c teste_dil.f
+#teste_dil.o		:teste_dil.f
+#			$(F77) $(F77FLAGS) -c teste_dil.f
 vhlle_read.o			:vhlle_read.f 
 			$(F77) $(F77FLAGS) -c vhlle_read.f
 readeos.o		:readeos.f 

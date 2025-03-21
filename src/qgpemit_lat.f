@@ -28,7 +28,7 @@ c..
 c*****|****************************************************************|X
 
       SUBROUTINE qgpemit_lat(lam,temp,muquark,gce,vxce,vyce,vzce,
-     &  multi,vol4,beta_lab,dt,timestep) 
+     &  multi,vol4,beta_lab,dt,time) 
 
       implicit none
       include 'defs.f'
@@ -66,7 +66,6 @@ c     functions
       real*8 effvol4
 
       real*8 dt,time
-      integer timestep
 
       real*8 ammax,ammin
       real*8 result,dam,am(100),s,hp,fam1
@@ -173,7 +172,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccc!
          stat=10                                         !
       end if                                             !         
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccc! 
-
+      stat=1
       do 678 l=1,stat
 
 c.. ****GENERATE MASS****
@@ -217,8 +216,8 @@ c.. ****WRITE CELL CONTRIBUTION****
 c      write(0,*)'contr=',contr
 
        if(contr.lt.0.0d0.OR.contr.gt.(5.0d0*vol4)) then
-        write(0,*)'Suspicious weight!'
-        write(0,*)'Weight,vol4,T,mu_q',contr,vol4,T,muquark
+c        write(0,*)'Suspicious weight!'
+c        write(0,*)'Weight,vol4,T,mu_q',contr,vol4,T,muquark
         contr=0.0d0
         return
        endif
@@ -231,14 +230,13 @@ c. **** Write into output file f71 ****
       bev=0.0d0
       acce=1.0d0
       accp=1.0d0
-      time=dble(timestep*dt)
       effvol4=vol4*lam*dble(multi)/dble(stat)
 c........................................................................
 c. NOTE: The extended output format writes out ***lab-system momenta*** !
 c.       for e+ and e-                                                  !
 c.......................................................................!
       if(vHLLE_out) then
-       write(71,557)ityp,contr/multi,mass,p0l,pxl,pyl,pzl,effvol4/multi,t,3*muquark
+       write(71,*)time,ityp,contr/multi,mass,p0l,pxl,pyl,pzl,effvol4/multi,t,3*muquark
       elseif(ext_out) then !extended output format
 c       write(71,556)ityp,contr,mass
        write(71,*)ityp,contr,mass,p0_el_lab,px_el_lab,py_el_lab,
@@ -251,7 +249,7 @@ c       write(71,556)ityp,contr,mass
  555  format(e14.7,4f12.7,I2,2E14.7)
  556  format(I5,1X,13(E16.8E3,1X),I4,1X,2(E16.8E3,1X),I9,1X,
      &F12.8,1X,2(E16.8,1x))
- 557  format(I3,e14.7,5f12.7,3f6.3)
+ 557  format(I3,I3,e14.7,5f12.7,3f6.3)
 
  678  continue
 

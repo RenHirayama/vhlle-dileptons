@@ -4,8 +4,8 @@
 export model=2
 
 #FOR SMASH: NEED TO DEFINE ECM AND TRANSFORMATION BETA
-export ecm=10
-export betalab=0.0292914
+export ecm=ENERGY
+export betalab=0
 
 # VACUUM OR MEDIUM CALCULATION? *0*= MEDIUM SPECTRAL FUNCTION, *1*=RHO VACUUM SF
 # CAUTION: VACUUM CALCULATION ONLY POSSIBLE FOR ELETSKY SF; FOR RAPP SF MUST BE 1!
@@ -86,11 +86,11 @@ export ftn71=dileptons_ENERGY.f71
 export random=$(printf '%d' 0x$(xxd -l 3 -ps -c 10 /dev/urandom))
 #export random=123456789
 
-export inputFile='../../dileptons_teste/DynFlu0.5/ENERGY/Hydro/1/for_dilrates.dat'
+export inputFile='for_dilrates_ENERGY.dat'
 
 ### DEFINE INPUTFILE (URQMD-F14 OR SMASH-OSCAR) AND STANDARD OUTPUTFILE HERE.
 ### NOTE THAT THE STANDARD OUTPUT CONTAINS ONLY THE PROPERTIES FOR EACH
 ### SPACE-TIME CELL; THE DILEPTON RESULTS ARE WRITTEN IN THE F71-FILE.
-cat SMASH_AuAu_10.oscar | ./teste_dil > outputfile.out
+cat SMASH_AuAu_10.oscar | ./vhlle_read > outputfile.out
 
 exit

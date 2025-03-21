@@ -130,12 +130,22 @@ c..Set Output Units
 
 c-----|----------------------------------------------------------------|X
 c.  Set values for TABLE RESOLUTION
-      multi=1
-      betaLAB=0
-      dt=0.02
-      vol4=dt*40*40*40/(80*80*100)
-      rhonuc=0.01
+
+
+      t=0.15
+      mub=0.1
+      mupion=0
       mukaon=0
+      lambda=0.5
+      rhonuc=0.02
+      vxce=0
+      vyce=0
+      vzce=0.2
+      multi=1
+      betaLAB=0.1
+      dt=0.02
+      vol4=1
+      gce=1/sqrt(1+vxce**2+vyce**2+vzce**2)
 
       call readeos()
       if(rates.ne.-1.AND.latqgp.eq.1) call qgptables_lat
@@ -148,27 +158,20 @@ c.  Set values for TABLE RESOLUTION
       mmmaxor=mmmaxrhom
       rates=4
       call readdil_rapp_rho()
-      open(unit=1,file=trim(inputFile),status='old')
-      do
-        read(1,*,end=101)h,t,mub,mupion,dummy,lambda,rhonuc,vxce,vyce,vzce
-        gce=1/sqrt(vxce**2+vyce**2+vzce**2)
-        muq=mub/3
-c        write(0,413)h,t,mub,mupion,mukaon,vxce,vyce,vzce,lambda
-c        call sleep(1)
-        do h=1,5
-         if(mod(h,100).eq.0) write(0,*)h
-         if (lambda.gt.0.00001) then
-           call qgpemit_lat(lambda,t,muq,gce,vxce,vyce,vzce,multi,vol4,
-     &                      betaLAB,dt,h)
-         endif
-         if (lambda.lt.0.99999) then
-         call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
-     &                     vol4,multi,betaLAB,dt,h,lambda)
-         call fopiemit_mix(t,mub,rhonuc,mupion,mukaon,gce,vxce,vyce,
-     &                   vzce,vol4,multi,betaLAB,dt,h,lambda)
-         endif
-        end do
-      end do
+      muq=mub/3
+c      write(0,413)h,t,mub,mupion,mukaon,vxce,vyce,vzce,lambda
+c      call sleep(1)
+       if(mod(h,100).eq.0) write(0,*)h
+       if (lambda.gt.0.00001) then
+         call qgpemit_lat(lambda,t,muq,gce,vxce,vyce,vzce,multi,vol4,
+     &                    betaLAB,dt,h)
+       endif
+       if (lambda.lt.0.99999) then
+       call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
+     &                   vol4,multi,betaLAB,dt,h,lambda)
+       call fopiemit_mix(t,mub,rhonuc,mupion,mukaon,gce,vxce,vyce,
+     &                 vzce,vol4,multi,betaLAB,dt,h,lambda)
+       endif
 101   write(0,*)"Did rho, omega, multi-pi, QGP"
         
       itmaxor=itmaxphi
@@ -179,19 +182,11 @@ c        call sleep(1)
       mmmaxor=mmmaxphi
       rates=3
       call readdil_rapp_phi()
-      open(unit=1,file=trim(inputFile),status='old')
-      do
-        read(1,*,end=102)h,t,mub,mupion,dummy,lambda,rhonuc,vxce,vyce,vzce
-        if(lambda.lt.0.99999) then
-          gce=1/sqrt(vxce**2+vyce**2+vzce**2)
-
-          do h=1,5
-            if(mod(h,100).eq.0) write(0,*)h
-            call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
-     &                           vol4,multi,betaLAB,dt,h,lambda)
-          end do
+      if(lambda.lt.0.99999) then
+        if(mod(h,100).eq.0) write(0,*)h
+          call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
+     &                         vol4,multi,betaLAB,dt,h,lambda)
         endif
-      end do
 102   write(0,*)"Did phi"
 
 413   format(I3,7f7.4,1f2.1)

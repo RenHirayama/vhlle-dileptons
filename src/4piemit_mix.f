@@ -22,7 +22,7 @@ c..
 c*****|****************************************************************|X
 
       SUBROUTINE fopiemit_mix(temp,mub,rhonuc,pipot,kpot,gce,vxce,vyce,
-     &                     vzce,vol4,multi,beta_lab,dt,timestep,lambda)
+     &                     vzce,vol4,multi,beta_lab,dt,time,lambda)
 
       implicit none
 
@@ -43,7 +43,6 @@ c      parameter(mmin4pi=0.7875d0,mmax4pi=2.5625d0)
       parameter (flag4pi=4)
 
       real*8 dt,time
-      integer timestep
 
       integer noe,ityp
       real*8 bev,acce,accp
@@ -101,7 +100,6 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc!
         stat=10                                             !
       endif                                                 !                              
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc! 
-
       do 678 l=1,stat
 
 c. **** Generate mass ****
@@ -136,8 +134,8 @@ c.. Determine cell contribution
       contr=rate*(1d0-lambda)*dble(multi)/dble(stat)*vol4
 
        if(contr.lt.0.0d0.OR.contr.gt.(5.0d0*vol4)) then
-        write(0,*)'Suspicious weight!'
-        write(0,*)'Weight,vol4,T,rhnuc,ppt',contr,vol4,T,rhn,pipot
+c        write(0,*)'Suspicious weight!'
+c        write(0,*)'Weight,vol4,T,rhnuc,ppt',contr,vol4,T,rhn,pipot
         contr=0.0d0
         return
        endif
@@ -148,14 +146,14 @@ c. **** Write into output file f71 ****
       bev=0.0d0
       acce=1.0d0
       accp=1.0d0
-      time=dble(timestep*dt)
       effvol4=vol4*(1d0-lambda)*dble(multi)/dble(stat)
 c........................................................................
 c. NOTE: The extended output format writes out ***lab-system momenta*** !
 c.       for e+ and e-                                                  !
 c.......................................................................!
       if(vHLLE_out) then
-       write(71,557)ityp,contr/multi,mass,p0l,pxl,pyl,pzl,effvol4/multi,t,mub
+       write(71,*)time,ityp,contr/multi,mass,p0l,pxl,pyl,pzl,effvol4/multi,t,mub
+c       write(0,*)time,ityp,contr/multi,mass,p0l,pxl,pyl,pzl,effvol4/multi,t,mub
       elseif(ext_out) then !extended output format
        write(71,556)ityp,contr,mass,p0_el_lab,px_el_lab,py_el_lab,
      & pz_el_lab,p0_po_lab,px_po_lab,py_po_lab,pz_po_lab,dt,time,effvol4,
@@ -167,7 +165,7 @@ c.......................................................................!
  555  format(e14.7,4f12.7,i9)	 
  556  format(I5,1X,13(E16.8E3,1X),I4,1X,2(E16.8E3,1X),I9,1X,
      &F12.8,1X,2(E16.8,1x))
- 557  format(I3,e14.7,5f12.7,3f6.3)
+ 557  format(I3,I3,e14.7,5f12.7,3f6.3)
 
  678  continue
 

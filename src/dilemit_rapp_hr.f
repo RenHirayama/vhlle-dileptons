@@ -21,7 +21,7 @@ c..
 c*****|****************************************************************|X
 
       SUBROUTINE dilemit_rapp_hr(temp,rhonuc,kpot,pipot,gce,vxce,vyce,
-     &                     vzce,vol4,multi,beta_lab,dt,timestep,lambda) 
+     &                     vzce,vol4,multi,beta_lab,dt,time,lambda) 
       implicit none
 
       include 'defs.f'
@@ -54,8 +54,6 @@ c-----|----------------------------------------------------------------|X
       real*8 beta_lab
 
       real*8 dt,time
-      integer timestep
-   
       real*8 fugacity
       
 c.. functions
@@ -166,7 +164,6 @@ c.. MASS STEPS
       zwmax(18)=mmax
 
 c.. Time
-      time=dt*dble(timestep)
 
 c-----|----------------------------------------------------------------|X
 c. **** If: zwstep=.TRUE. : Loop to increase statistics at high mass ****
@@ -300,10 +297,10 @@ c.. p0l is set to zero in r_momdist
  
 c      write(0,*)'p0l,pxl,pyl,pzl',p0l,pxl,pyl,pzl ! Debug only 
       if(.NOT.(p0l.gt.0d0.AND.dabs(pxl).gt.0.0d0)) then
-       write(0,*)'error in momentum generation, return'
-       write(0,*)'meson,mass,temp,rate',meson,mass,temp,rate ! Debug only
-       write(0,*)'vol4,rhnuc,ppt,fug',vol4,rhn,pipot,fugacity
-       write(0,*)'gce,vxce,vyce,vzce',gce,vxce,vyce,vzce
+c       write(0,*)'error in momentum generation, return'
+c       write(0,*)'meson,mass,temp,rate',meson,mass,temp,rate ! Debug only
+c       write(0,*)'vol4,rhnuc,ppt,fug',vol4,rhn,pipot,fugacity
+c       write(0,*)'gce,vxce,vyce,vzce',gce,vxce,vyce,vzce
        cycle
       endif            
  
@@ -319,11 +316,11 @@ c      write(0,*)'p0e,pxe,pye,pze',p0_po_lab,px_po_lab,py_po_lab,
 c     &                            pz_po_lab ! Debug only 
 
       if(.NOT.(p0_el_lab.gt.0d0.AND.p0_po_lab.gt.0.0d0)) then
-       write(0,*)'error in momentum generation, return'
-       write(0,*)'meson,mass,temp,rate',meson,mass,temp,rate ! Debug only
-       write(0,*)'p0l,pxl,pyl,pzl',p0l,pxl,pyl,pzl
-       write(0,*)'vol4,rhnuc,ppt,fug',vol4,rhn,pipot,fugacity
-       write(0,*)'beta,gce,vxce,vyce,vzce',beta_lab,gce,vxce,vyce,vzce
+c       write(0,*)'error in momentum generation, return'
+c       write(0,*)'meson,mass,temp,rate',meson,mass,temp,rate ! Debug only
+c       write(0,*)'p0l,pxl,pyl,pzl',p0l,pxl,pyl,pzl
+c       write(0,*)'vol4,rhnuc,ppt,fug',vol4,rhn,pipot,fugacity
+c       write(0,*)'beta,gce,vxce,vyce,vzce',beta_lab,gce,vxce,vyce,vzce
        cycle
       endif    
 
@@ -342,10 +339,10 @@ c.. Determine cell contribution
        contr=rate*vol4*(1.0d0-lambda)*dble(multi)*fugacity
 
        if(.NOT.(contr.gt.0.0d0.AND.contr.lt.(5.0d0*vol4))) then
-        write(0,*)'Suspicious weight!'
-        write(0,*)'meson,mass,temp,rate',meson,mass,temp,rate ! Debug only
-        write(0,*)'vol4,rhnuc,ppt,fug',vol4,rhn,pipot,fugacity
-        write(0,*)'gce,vxce,vyce,vzce',gce,vxce,vyce,vzce
+c        write(0,*)'Suspicious weight!'
+c        write(0,*)'meson,mass,temp,rate',meson,mass,temp,rate ! Debug only
+c        write(0,*)'vol4,rhnuc,ppt,fug',vol4,rhn,pipot,fugacity
+c        write(0,*)'gce,vxce,vyce,vzce',gce,vxce,vyce,vzce
         contr=0.0d0
         cycle
        endif
@@ -362,7 +359,7 @@ c. NOTE: The extended output format writes out ***lab-system momenta*** !
 c.       for e+ and e-                                                  !
 c.......................................................................!
       if(vHLLE_out) then
-       write(71,557)ityp,contr/multi,mass,p0l,pxl,pyl,pzl,effvol4/multi,temp,rhn
+       write(71,*)time,ityp,contr/multi,mass,p0l,pxl,pyl,pzl,effvol4/multi,temp,rhn
       elseif(ext_out) then !extended output format
        write(71,556)ityp,contr,mass,p0_el_lab,px_el_lab,py_el_lab,
      & pz_el_lab,p0_po_lab,px_po_lab,py_po_lab,pz_po_lab,dt,time,effvol4,
@@ -374,7 +371,7 @@ c.......................................................................!
  555  format(e14.7,4f12.7,i9,2f12.7)
  556  format(I5,1X,13(E16.8E3,1X),I4,1X,2(E16.8E3,1X),I9,1X,
      &F12.8,1X,2(E16.8,1x))
- 557  format(I3,e14.7,5f12.7,3f6.3)
+ 557  format(I5,I3,e14.7,5f12.7,3f6.3)
 
  678  continue
 

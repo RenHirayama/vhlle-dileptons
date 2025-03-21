@@ -1,324 +1,222 @@
 c234567**1*********2*********3*********4*********5*********6*********7**X
-c.. SUBROUTINE INPUT
-c..
-c.. This is the main coarse-graining subroutine
-c.. for UrQMD file14 (with multiple timesteps) read-in,
-c.. calling the other calculation routines
-c*****|****************************************************************|X
+c..   ***COARSE-GRAINING PROGRAM FOR URQMD OUTPUT***                    X
+c..                                                                     X
+c..                                                                     X
+c..   The coordinate system                                             X
+c..   x = orthogonal to beam, in reaction plane                         X
+c..   y = orthogonal to beam, out of reaction plane                     X
+c..   z = beam axis                                                     X
+c..                                                                     X
+c..   Maximal grid size is grid size is (grd*grd*grd_z) cells           X
+c..                                                                     X
+c..   This program operates in GeV                                      X
+c..                                                                     X
+c****&|****************************************************************|X
+c..                                                                     X
+c.. USE RUNFILE TO RUN THIS ROUTINE                                     X
+c.. (not all necessary definitions listed, see example runfile)         X
+c..                                                                     X
+c.. export vacuum=*spectral function: 1 for vacuum, 0 for in-medium*    X
+c.. export gridsize=*gridsize (number of cells per direction)*          X
+c.. export cellsize=*length of cells (in fm)*                           X
+c.. export eos=*equation of state*                                      X
+c.. export leptype=*0 for dielectrons, 1 for dimuons*                   X
+c.. ...                                                                 X
+c.. ...                                                                 X
+c.. export ftn71=*file for regular coarse-graining output*              X
+c.. export ftn72=*file for additional rho & Delta shinig output*        X
+c..                                                                     X
+c..                                                                     X
+c..                                                                     X
+c.. cat *infile* | ./coarse > *outfile*                                 X
+c..                                                                     X
+c****&|****************************************************************|X
 
-      subroutine vhlle_read(grd,grd_z,dx,vol,vac)
+      PROGRAM teste_dil
+
+c..ONLY FOR INTEL COMPILER!
+cccccccccccccccccccccccccc!
+c      use ifport         !
+cccccccccccccccccccccccccc!
+
       implicit none
+
+c.......................................................................
+c.***NOTE***: To switch between dimuon/dielectron output and to        .
+c.            determine the equation of state, use the file defs.f     .
+c.......................................................................
 
       include 'defs.f'
 
-c. general
-      real*8 dx,dt,vol,vol4
+c. general varibles & grid parameter
+
+      character*32 dx_,grd_,vacuum_,eos_,leptype_,rates_,na60mode_,rhonuc_
+      character*32 output_,pikchem_,fourpimix_,baryons_,latqgp_,random_
+      character*32 phqgp_,hgpar_,model_
+      character*96 file71
+      character*96 inputFile, inputDir
+      real*8 dx,vol
       integer grd,grd_z,vac
+      integer leptype
+      real*8 time,time_old
 
-c. event header, one for every collision
+      real*8 time_used,mtest,r_distmhad_hr,dummy,bessk1,mupik
+      external r_distmhad_hr,bessk1,mupik
+c      integer time
+      integer timen
+      integer now(1:3),day(1:3)
 
-      integer filetype
-      integer UrQMDver
-c.. number of events
-      integer noe,noefo,evts,nouse,noecount
-      logical emptyev
-c.. impact parameter
-      real*8 b(evtmax),bmin,bmax
-c.. projectile & target
-      integer proA,proZ,tarA,tarZ
-c.. cross-section
-      real*8 sigma
-c.. transformation betas
-      real*8 betaNN,betaLAB,betaPRO
-c..  beam & c.o.m. energy / beam momentum
-      real*8 elab,ecm,plab,pcm
-      real*8 snn
-c.. time & timestep
-      real*8 deltat
-      integer tottime
+      real*8 T,mu
+      common /th_dyn/T,mu
 
-c. functions
-      real*8 temp,chem,cs,mupik
-      real*8 ranff
-      external ranff
-      integer ityp
-      external ityp
-      integer charge
-      external charge
-c.. temperature & chemical potential
-      real*8 t,mub,muq,lambda
+      real*8 rhonuc,muq,mub,mukaon,mupion,gce,betaLAB,dt,vol4,lambda
+      real*8 vxce,vyce,vzce
+      integer h, multi, jj
 
-c. timestep header, one for every timestep
-      integer nexit(evtmax,timemax)
-      integer nexitcount
+      logical vhlle_finished
 
-c. event body
+c.. define general values
 
-c.. read OUTgoing particles
-      real*8 OUTr0(timemax,outmax),OUTrx(timemax,outmax)
-      real*8 OUTry(timemax,outmax),OUTrz(timemax,outmax)
-      real*8 OUTp0(timemax,outmax),OUTpx(timemax,outmax)
-      real*8 OUTpy(timemax,outmax),OUTpz(timemax,outmax)
-      real*8 OUTmass(timemax,outmax)
-      integer OUTityp(timemax,outmax),OUTiso3(timemax,outmax)
-      integer OUTch(timemax,outmax),OUTlcoll(timemax,outmax)
-      integer OUTcoll(timemax,outmax),OUTpaproc(timemax,outmax)
-      integer OUTorigin(timemax,outmax)
-      integer tformflag
+c..FREEZE-OUT.CALCULATION?..!
+c..USE NOT RECOMMENDED......!
+c      focalc=.true.        !
+      focalc=.false.        !
+cccccccccccccccccccccccccccc!
 
-c. for subroutines
-c.. GRID
-c... cell properties
-      real*8 nopart(timemax,grd,grd,grd_z)
+      vac=0
+      eos=6
 
-      real*8 norho0(timemax,grd,grd,grd_z)
-      real*8 mrho0(timemax,grd,grd,grd_z)
-      real*8 p0rho0(timemax,grd,grd,grd_z)
-      real*8 pxrho0(timemax,grd,grd,grd_z)
-      real*8 pyrho0(timemax,grd,grd,grd_z)
-      real*8 pzrho0(timemax,grd,grd,grd_z)
+      dx=0.0d0
+      vol=0.0d0
+      grd=0
+      na60mode=0
 
-      real*8 nodelta(timemax,grd,grd,grd_z)
-      real*8 mdelta(timemax,grd,grd,grd_z)
-      real*8 p0delta(timemax,grd,grd,grd_z)
-      real*8 pxdelta(timemax,grd,grd,grd_z)
-      real*8 pydelta(timemax,grd,grd,grd_z)
-      real*8 pzdelta(timemax,grd,grd,grd_z)
+      outputs=1
 
-      real*8 noomega(timemax,grd,grd,grd_z)
-      real*8 momega(timemax,grd,grd,grd_z)
-      real*8 p0omega(timemax,grd,grd,grd_z)
-      real*8 pxomega(timemax,grd,grd,grd_z)
-      real*8 pyomega(timemax,grd,grd,grd_z)
-      real*8 pzomega(timemax,grd,grd,grd_z)
+c.. Random Seed Input
+      call getenv('random',random_)
+      read(random_,*)  seedinit
 
-      real*8 nophi(timemax,grd,grd,grd_z)
-      real*8 mphi(timemax,grd,grd,grd_z)
-      real*8 p0phi(timemax,grd,grd,grd_z)
-      real*8 pxphi(timemax,grd,grd,grd_z)
-      real*8 pyphi(timemax,grd,grd,grd_z)
-      real*8 pzphi(timemax,grd,grd,grd_z)
+c...FOR DILEPTON CALCULATION ONLY.....................................
+c.. Dimuon *OR* Dielectron Emission
+      call getenv('leptype',leptype_)
+      read(leptype_,*)  leptype
 
-      real*8 p0(timemax,grd,grd,grd_z)
-      real*8 px(timemax,grd,grd,grd_z)
-      real*8 py(timemax,grd,grd,grd_z)
-      real*8 pz(timemax,grd,grd,grd_z)
-      real*8 n0(timemax,grd,grd,grd_z)
-      real*8 npi(timemax,grd,grd,grd_z)
-      real*8 nk(timemax,grd,grd,grd_z)
-      real*8 jx(timemax,grd,grd,grd_z)
-      real*8 jy(timemax,grd,grd,grd_z)
-      real*8 jz(timemax,grd,grd,grd_z)
-      real*8 rhoeff(timemax,grd,grd,grd_z)
+c.. 4-Pion Rates (V-A Mixing: *fourpimix=1*, Pure V: *fourpimix=0*)
+      call getenv('fourpimix',fourpimix_)
+      read(fourpimix_,*)  fourpimix
 
-      real*8 t00(timemax,grd,grd,grd_z)
-      real*8 t01(timemax,grd,grd,grd_z)
-      real*8 t02(timemax,grd,grd,grd_z)
-      real*8 t03(timemax,grd,grd,grd_z)
-      real*8 t11(timemax,grd,grd,grd_z)
-      real*8 t22(timemax,grd,grd,grd_z)
-      real*8 t33(timemax,grd,grd,grd_z)
-      real*8 t12(timemax,grd,grd,grd_z)
-      real*8 t13(timemax,grd,grd,grd_z)
-      real*8 t23(timemax,grd,grd,grd_z)
+c.. Lattice QGP rates (Yes: *latqgp=1*, No: *latqgp=0*)
+      call getenv('latqgp',latqgp_)
+      read(latqgp_,*)  latqgp
 
+c.. dNch/deta > 30 selection for NA60
+      call getenv('na60mode',na60mode_)
+      read(na60mode_,*)  na60mode
 
-c.. TRANSFORM
-c... local rest-frame properties
-      real*8 tau(timemax,grd,grd,grd_z)
-      real*8 p0_lrf(timemax,grd,grd,grd_z)
-      real*8 n0_lrf(timemax,grd,grd,grd_z)
-      real*8 npi_lrf(timemax,grd,grd,grd_z)
-      real*8 nk_lrf(timemax,grd,grd,grd_z)
-      real*8 jx_lrf(timemax,grd,grd,grd_z)
-      real*8 jy_lrf(timemax,grd,grd,grd_z)
-      real*8 jz_lrf(timemax,grd,grd,grd_z)
-      real*8 edens_lrf(timemax,grd,grd,grd_z)
-      real*8 rhoe_lrf(timemax,grd,grd,grd_z)
-      real*8 gam(timemax,grd,grd,grd_z)
-      real*8 volce(timemax,grd,grd,grd_z)
-c.. cell properties
-      real*8 edens_cell,n0_cell,vxce,vyce,vzce,gce,volumce,rhonuc
-      real*8 pidens_cell,kdens_cell,mupion,mukaon,maxmuk,maxmupi
-      real*8 temp_cell(timemax,grd,grd,grd_z)
-      real*8 mub_cell(timemax,grd,grd,grd_z)
-      real*8 mupi_cell(timemax,grd,grd,grd_z)
-      real*8 muk_cell(timemax,grd,grd,grd_z)
+c.. Dielectron / Dimuon emission
+      dimuon=.FALSE.
+      if(leptype.eq.1) dimuon=.TRUE.
 
-      real*8 qgp_vol(timemax)
-      real*8 qgp_4vl(timemax)
-      real*8 qgp_tot4vl
-      real*8 qgp_avtemp(timemax)
-      real*8 qgp_tottemp
-      real*8 bar_vol(timemax)
-      real*8 bar_totnum(timemax)
+c..Set Input File
+      call getenv('inputFile',inputFile)
+c..Set Output Units
+      call getenv('ftn71',file71)
 
-      real*8 mupi_av(timemax)
-      real*8 muk_av(timemax)
-      integer cells_t_gt05(timemax)
+      if (file71(1:4).ne.'    ') then
+         OPEN(UNIT=71,FILE=file71,STATUS='replace',FORM='FORMATTED')
+      endif
 
-      integer collnoel(timemax)
-      integer collnoin(timemax)
+      write(0,*)'RANDOM SEED',seedinit
 
-      integer elcount(timemax,grd,grd,grd_z)
-      integer inelcount(timemax,grd,grd,grd_z)
-
-      integer fo_cell(timemax,grd,grd,grd_z)
-      integer fo_marker(grd,grd,grd_z)
-c... counter for filled / empty cells
-      integer cells_bar,cells_mes_nobar,cells_lt_minpart
-
-c.. other
-      integer e,f,g,h,i,ii,iii,iiii,j,jj,jjj,jjjj,k,z,zz,zzz,zzzz,m
-      integer n,o,p,q,r,rr,rrr,w,ww,www,wwww,a1,a2,a3,a4
-      integer timesteps, timestepcount, multi, mark1, mark2, freestr
-      real*8 bev(evtmax)
-      real*8 lack, percent, coarsefac, crse
-      integer lack_, counter, counterx, count_fo, evt_modulo
-      character dummy, dot
-      real*8 dNchdeta(evtmax),dNchdetatot,dNchmin,dNchmax,part_y
-      real*8 avtempfo
-      real*8 avcoll
-      real*8 plateau
-      logical delemit
-
-      logical lhcinput
-
-      real*8 nucmass
-      PARAMETER(nucmass=0.938d0)
-
-      integer urqmdityp,urqmdcharge
-
-      character*32 betalab_,ecm_
-      character*32 control,dummylong
-      
-      write(0,*)'CODE HIJACKED'
-      write(0,*)'****************************************************'
-      
-      t=0.15
-      rhonuc=0.2
-      muq=0.3
+c-----|----------------------------------------------------------------|X
+c.  Set values for TABLE RESOLUTION
+      multi=1
+      betaLAB=0
+      dt=0.02
+      vol4=dt*40*40*40/(80*80*100)
       mukaon=0
-      mupion=0
-      gce=0.1
-      vxce=0
-      vyce=0
-      vzce=0.3
-      vol4=1
-      multi=100
-      betaLAB=0.3
-      dt=1
-      h=1
-      lambda=0.15
-      do h=1,500
-       if(mod(h,100).eq.0) write(0,*)h
-       call qgpemit_lat(lambda,t,muq,gce,vxce,vyce,vzce,multi,vol4,
-     &                  betaLAB,dt,h)
-       call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
-     &                     vol4,multi,betaLAB,dt,h,lambda)
-       call fopiemit_mix(t,mub,rhonuc,mupion,mukaon,gce,vxce,vyce,
-     &                   vzce,vol4,multi,betaLAB,dt,h,lambda)
+      h=0
+      time_old=0
+
+      call readeos()
+      if(rates.ne.-1.AND.latqgp.eq.1) call qgptables_lat
+
+      itmaxor=itmaxrhom
+      jrhomaxor=jrhomaxrhom
+      kpimaxor=kpimaxrhom
+      lkmaxor=lkmaxrhom
+      nqmaxor=nqmaxrhom
+      mmmaxor=mmmaxrhom
+      rates=4
+      call readdil_rapp_rho()
+      open(unit=1,file=trim(inputFile),status='old')
+      do
+        read(1,*,end=101)time,t,mub,mupion,dummy,lambda,rhonuc,vxce,vyce,vzce
+        if (time_old.ne.time) then
+          time_old=time
+          h=h+1
+          if(mod(h,10).eq.0) write(0,*)h
+        endif
+        gce=1/sqrt(vxce**2+vyce**2+vzce**2)
+        muq=mub/3
+c        write(0,*)h,t,mub,mupion,mukaon,vxce,vyce,vzce,lambda
+c        call sleep(5)
+        if (lambda.gt.0.001) then
+          call qgpemit_lat(lambda,t,muq,gce,vxce,vyce,vzce,multi,vol4,
+     &                     betaLAB,dt,time)
+        endif
+        if (lambda.lt.0.999) then
+        call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
+     &                    vol4,multi,betaLAB,dt,time,lambda)
+        call fopiemit_mix(t,mub,rhonuc,mupion,mukaon,gce,vxce,vyce,
+     &                  vzce,vol4,multi,betaLAB,dt,time,lambda)
+        endif
       end do
-
-      write(0,*)'CALLED DILETPON EMISSIONS'
-      write(0,*)'****************************************************'
-c... HADRONIC VECTOR-MESON CONTRIBUTION
-c DILEPTON
-          if(lambda.lt.0.99999d0.AND.rates.ge.0) then
-           if(rates.eq.1) then ! RAPP SPECTRAL FUNCTION
-            call dilemit_rapp(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
-     &                        vol4,multi,betaLAB,dt,h,lambda)
-           elseif(rates.ge.2) then ! RAPP SPECTRAL FUNCTION - RHO & OMEGA / PHI ONLY or all 3
-             call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
-     &                        vol4,multi,betaLAB,dt,h,lambda)
-           endif
-c PHOTON
-          elseif(lambda.lt.0.99999d0.AND.rates.eq.-1) then
-            call rapp_photon(t,mub,mupion,gce,vxce,vyce,vzce,
-     &                        vol4,multi,betaLAB,dt,h,lambda)
+101   write(0,*)"Did rho, omega, multi-pi, QGP. Number of lines:",h
+        
+      itmaxor=itmaxphi
+      jrhomaxor=jrhomaxphi
+      kpimaxor=kpimaxphi
+      lkmaxor=lkmaxphi
+      nqmaxor=nqmaxphi
+      mmmaxor=mmmaxphi
+      rates=3
+      call readdil_rapp_phi()
+      close(1)
+      open(unit=2,file=trim(inputFile),status='old')
+      do
+        read(2,*,end=102)time,t,mub,mupion,dummy,lambda,rhonuc,vxce,vyce,vzce
+        if (time_old.ne.time) then
+          time_old=time
+          h=h+1
+          if(mod(h,10).eq.0) write(0,*)h
+        endif
+        if(lambda.lt.0.999) then
+          gce=1/sqrt(vxce**2+vyce**2+vzce**2)
+          call dilemit_rapp_hr(t,rhonuc,mukaon,mupion,gce,vxce,vyce,vzce,
+     &                         vol4,multi,betaLAB,dt,time,lambda)
           endif
+      end do
+102   write(0,*)"Did phi"
+      close(2)
 
-c... QGP CONTRIBUTION
-c DILEPTON
-          if(lambda.gt.0.1d-5.AND.rates.ne.3.AND.rates.ge.0) then
-           if(latqgp.eq.0) then
-             call qgpemit(lambda,t,muq,gce,vxce,vyce,vzce,multi,vol4,
-     &                    betaLAB,dt,h)
-           elseif(latqgp.eq.1) then
-             call qgpemit_lat(lambda,t,muq,gce,vxce,vyce,vzce,multi,vol4,
-     &                        betaLAB,dt,h)
-           endif
-c PHOTON
-          elseif(lambda.gt.0.1d-5.AND.rates.eq.-1) then
-           call qgp_photon(t,mub,mupion,gce,vxce,vyce,vzce,
-     &                  vol4,multi,betaLAB,dt,h,lambda)
-          endif
+413   format(I3,7f7.4,1f2.1)
+c-----|----------------------------------------------------------------|X
+c. **** TIME ELAPSED ****
 
-c... 4-PION CONTRIBUTION
-c DILEPTON ONLY
-          if(lambda.lt.0.99999d0.AND.rates.ne.3.AND.rates.ge.0) then
-           if(fourpimix.eq.0) then
-            call fopiemit(t,mub,mupion,gce,vxce,vyce,vzce,vol4,multi,
-     &                    betaLAB,dt,h,lambda)
-           elseif(fourpimix.eq.1) then
-            call fopiemit_mix(t,mub,rhonuc,mupion,mukaon,gce,vxce,vyce,
-     &                        vzce,vol4,multi,betaLAB,dt,h,lambda)
-           endif
-          endif
+      call cpu_time(time_used)
+      write(0,*)'Elapsed CPU time =',time_used
 
-c-----|------------------------------------------------------------------
-c. **** OUTPUT ****
-c..This writes the values of T and mu for each cell into a seperate file
-c      if(outputs.eq.1) then
-c      call output(grd,grd_z,dx,deltat,timesteps,tau,p0,n0,edens_lrf,
-c     &            n0_lrf,jx,jy,jz,mub_cell,temp_cell,gam)
-c      endif
-c-----|------------------------------------------------------------------
+      close(68)
+      close(69)
+      close(70)
+      close(71)
+      close(72)
 
-c. **** FORMAT DEFINITIONS ****
-c format: file13, UrQMD 2.3
- 213  format(9e16.8,i11,2i3,i9,i5,i4,8e16.8)
-c    LHC
-c 213  format(9e24.16,i11,2i3,i9,i5,i4,8e24.16)
+      stop '****Calculation finished****'
 
-c formats: file14, UrQMD 2.3
- 214  format(9e16.8,i11,2i3,i9,i5,i4)
- 2141 format(i4,9e16.8,i11,2i3,i9,i5,i4)
-c    LHC
- 244  format(9e24.16,i11,2i3,i9,i5,i4)
- 2441 format(i4,9e24.16,i11,2i3,i9,i5,i4)
+c-----|----------------------------------------------------------------|X
 
-c header-line for each collision in file14
-
- 131  format(a20,3i7,a15,i2)
- 132  format(a13,a13,i4,i4,a12,a13,i4,i4,a1)
- 133  format(a36,3f11.7)
- 134  format(a36,3f6.2,a31,f9.2)
- 135  format(a20,i3,a15,e11.4,a15,e11.4,a15,e11.4)
- 136  format(a7,i9,a13,i12,a9,a20,i7,a20,f11.3)
- 137  format(a2,15(i3,a2))
- 138  format(a2,12(e11.4,a2))
- 139  format(a171)
-
- 301  format(2i12)
- 302  format(8i8)
-
-c format for output 72
- 555  format(e14.7,4f12.7,i9,2f12.7)
- 556  format(I5,1X,13(E16.8E3,1X),I4,1X,2(E16.8E3,1X),I9,1X,
-     &F12.8,1X,2(E16.8,1x))
-
-c format for output 74
- 511  format(i5,2x,e14.8,2x,e14.8)
- 599  format(10(a12,4x))
-
-c format for output 68, 69 & 70
- 721  format(4(i4,2x),10(e14.7,2x),2(e14.4,2x))
-
-c format for standard output header
- 761  format(F6.3,2x,I5,2x,F6.3,2x,2(I5,2x),F9.2,2x,F12.9,2(2x,F6.2))
-
-      return
       end
 
-c*****|****************************************************************|X

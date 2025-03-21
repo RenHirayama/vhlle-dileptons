@@ -996,6 +996,7 @@ c..   loop over masses
             do m=1,mmmaxor!76
              read(1,12)rhoaux,piaux,massaux,dmd3qmx_rh(i,j,k,l,m),
      &                 dmd3qmx_om(i,j,k,l,m)
+c             write(0,*)i,j,k,l,m
 c             write(0,*)'dmd3qmax:rho,omega,phi',dmd3qmx_rh(i,j,k,l,m),
 c     &                  dmd3qmx_om(i,j,k,l,m),dmd3qmx_ph(i,j,k,l,m) ! Debug only
             enddo
@@ -1003,7 +1004,6 @@ c     &                  dmd3qmx_om(i,j,k,l,m),dmd3qmx_ph(i,j,k,l,m) ! Debug onl
           enddo
          enddo 
       enddo
-
       close(1)
 
  12   format(1X,9(E10.4,2X))

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # DEFINE MODEL FOR WHICH INPUT IS READ IN: *1* = UrQMD, *2*= SMASH
 export model=2
@@ -80,13 +80,13 @@ export na60mode=2
 
 export rhonuc=0
 # *.F71 = MAIN THERMAL DILEPTON OUTPUT FILE
-export ftn71=dileptons_ENERGY.f71
+export ftn71=HYDRO_PATH/dileptons_ENERGY.dat
 
 # DEFINE SEED FOR RANDON NUMBER GENERATOR
 export random=$(printf '%d' 0x$(xxd -l 3 -ps -c 10 /dev/urandom))
 #export random=123456789
 
-export inputFile='for_dilrates_ENERGY.dat'
+export inputFile=HYDROPATH/'for_dilrates_ENERGY.dat'
 
 ### DEFINE INPUTFILE (URQMD-F14 OR SMASH-OSCAR) AND STANDARD OUTPUTFILE HERE.
 ### NOTE THAT THE STANDARD OUTPUT CONTAINS ONLY THE PROPERTIES FOR EACH

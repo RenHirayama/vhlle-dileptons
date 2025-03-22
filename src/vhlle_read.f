@@ -52,6 +52,7 @@ c. general varibles & grid parameter
 
       character*32 dx_,grd_,vacuum_,eos_,leptype_,rates_,na60mode_,rhonuc_
       character*32 output_,pikchem_,fourpimix_,baryons_,latqgp_,random_
+      character*32 dxdydz_,dt_
       character*32 phqgp_,hgpar_,model_
       character*96 file71
       character*96 inputFile, inputDir
@@ -59,6 +60,7 @@ c. general varibles & grid parameter
       integer grd,grd_z,vac
       integer leptype
       real*8 time,time_old
+      real*8 dxdydz
 
       real*8 time_used,mtest,r_distmhad_hr,dummy,bessk1,mupik
       external r_distmhad_hr,bessk1,mupik
@@ -114,6 +116,15 @@ c.. dNch/deta > 30 selection for NA60
       call getenv('na60mode',na60mode_)
       read(na60mode_,*)  na60mode
 
+c.. timestep
+      call getenv('dt',dt_)
+      read(dt_,*)  dt
+
+c.. cell 3-volume
+      call getenv('dxdydz',dxdydz_)
+      read(dxdydz_,*)  dxdydz
+
+
 c.. Dielectron / Dimuon emission
       dimuon=.FALSE.
       if(leptype.eq.1) dimuon=.TRUE.
@@ -133,9 +144,7 @@ c-----|----------------------------------------------------------------|X
 c.  Set values for TABLE RESOLUTION
       multi=1
       betaLAB=0
-      dt=0.02
-      vol4=dt*40*40*40/(80*80*100)
-      mukaon=0
+      vol4=dt*dxdydz
       h=0
       time_old=0
 
@@ -156,7 +165,7 @@ c.  Set values for TABLE RESOLUTION
         if (time_old.ne.time) then
           time_old=time
           h=h+1
-          if(mod(h,10).eq.0) write(0,*)h
+          write(0,*)h
         endif
         gce=1/sqrt(vxce**2+vyce**2+vzce**2)
         muq=mub/3
@@ -190,7 +199,7 @@ c        call sleep(5)
         if (time_old.ne.time) then
           time_old=time
           h=h+1
-          if(mod(h,10).eq.0) write(0,*)h
+          write(0,*)h
         endif
         if(lambda.lt.0.999) then
           gce=1/sqrt(vxce**2+vyce**2+vzce**2)
@@ -208,11 +217,7 @@ c. **** TIME ELAPSED ****
       call cpu_time(time_used)
       write(0,*)'Elapsed CPU time =',time_used
 
-      close(68)
-      close(69)
-      close(70)
       close(71)
-      close(72)
 
       stop '****Calculation finished****'
 
